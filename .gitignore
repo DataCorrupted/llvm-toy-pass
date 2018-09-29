@@ -1,3 +1,5 @@
 *.so
 .idea
 *.out
+*.ll
+*.bc

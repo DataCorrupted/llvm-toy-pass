@@ -31,7 +31,6 @@ public:
         for (auto entry: opcodeCnt){
             errs() << "opcode: " << entry.first << "\t occurrence: " << entry.second << "\n";
         }
-
         errs() << "\n";
         return false;
     }
