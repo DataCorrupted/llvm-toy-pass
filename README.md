@@ -2,6 +2,9 @@
 
 This repo is used to learn llvm by writing some toy passes myself.
 
+20180930 Update.   
+This repo will be paused for sometime as I will turn to integer over flow problems for now.
+I will get back and start working on malloc later.
 
 ## Quick start
 
@@ -17,6 +20,16 @@ http://laure.gonnord.org/pro/research/ER03_2015/lab3_intro.pdf
 http://www.cs.cornell.edu/~asampson/blog/clangpass.html
 https://github.com/rdadolf/clangtool/blob/master/clangtool.cpp
 
+## Reference
+
+Some useful papers are added here.
+I might have cited them... or not. 
+But I will put them here for now.
+
+[CCured: Type-Safe Retrofitting of Legacy Software](http://people.eecs.berkeley.edu/~necula/Papers/ccured_toplas.pdf)
+[Guarder: A Tunable Secure Allocator](https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-silvestro.pdf)
+
+  
 ## Folders description
 
 ### src
