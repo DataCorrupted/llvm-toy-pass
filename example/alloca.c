@@ -8,10 +8,10 @@ void passPtr(void* voidPtr){
 }
 
 int main(int argc, char const *argv[]){
-	int intArray[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	
-	int uIntArray[argc * 3 + (int) argv[0]];
-	uIntArray[0] = 1;
+	int intArray[argc];
+	for (int i=0; i< argc; i++){
+		intArray[i] = atoi(argv[i]);
+	}
 
 	void * intPtr = malloc(argc * sizeof(int));
 
