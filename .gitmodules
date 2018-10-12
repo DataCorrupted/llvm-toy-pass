@@ -1,0 +1,9 @@
+[submodule "example/git"]
+	path = example/git
+	url = git@github.com:git/git.git
+[submodule "example/gnu_bash"]
+	path = example/gnu_bash
+	url = git@github.com:gitGNU/gnu_bash.git
+[submodule "example/gnu_nano"]
+	path = example/gnu_nano
+	url = git@github.com:gitGNU/gnu_nano.git

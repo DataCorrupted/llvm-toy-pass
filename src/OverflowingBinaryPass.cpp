@@ -20,12 +20,12 @@ public:
 		errs() << "  Opearion | hasNoUnsignedWrap | hasNoSignedWrap  \n";
 		for (const BasicBlock& basicBlock: function){
 			for (const Instruction& instruction: basicBlock){
-				if (const BinaryOperator* binInst 
-                  = dyn_cast<BinaryOperator>(&instruction)){
-                  	errs() << "|    ";
-					errs() << binInst->getOpcodeName() << "   |       ";
-					errs() << (binInst->hasNoUnsignedWrap()? "true " : "false") << "       |      ";
-					errs() << (binInst->hasNoSignedWrap()? "true " : "false") << "      |\n";
+				if (const OverflowingBinaryOperator* overflowBinOp 
+                  = dyn_cast<OverflowingBinaryOperator>(&instruction)){
+                  	errs() << "|   ";
+					errs() << instruction.getOpcodeName() << "    |       ";
+					errs() << (overflowBinOp->hasNoUnsignedWrap()? "true " : "false") << "       |      ";
+					errs() << (overflowBinOp->hasNoSignedWrap()? "true " : "false") << "      |\n";
 				}
 			}
 		}
