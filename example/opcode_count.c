@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int inc(int& i){ 
-	i++; 
-	return i;
+int inc(int* i){ 
+	(*i)++; 
+	return *i;
 }
 
-int dec(int& i){
-	i--;
-	return i;
+int dec(int* i){
+	(*i)--;
+	return *i;
 }
 
 int main(int argc, char const *argv[]){
@@ -21,7 +21,7 @@ int main(int argc, char const *argv[]){
 	fprintf(stderr, "%s\n", constCStr);
 
 	fprintf(stderr, "%s\n", "Testing inc function.");
-	for (int i=0; i<10; inc(i)){
+	for (int i=0; i<10; inc(&i)){
 		fprintf(stderr, "%d ", i);
 	}
 	fprintf(stderr, "\n");
