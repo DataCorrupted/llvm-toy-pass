@@ -16,7 +16,7 @@ ifeq "$(origin CC)" "default"
   CXX        = clang++
 endif
 
-all: libCountOpcodePass.so libAllocaSizePass.so libOverflowingBinaryPass.so clean
+all: libCountOpcodePass.so libAllocaSizePass.so libOverflowingBinaryPass.so libAddIfThenBranchPass.so clean
 
 libCountOpcodePass.so: CountOpcodePass.cpp
 	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
@@ -25,6 +25,9 @@ libAllocaSizePass.so: AllocaSizePass.cpp
 	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
 
 libOverflowingBinaryPass.so: OverflowingBinaryPass.cpp
+	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
+
+libAddIfThenBranchPass.so: AddIfThenBranchPass.cpp
 	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
 	
 clean:
