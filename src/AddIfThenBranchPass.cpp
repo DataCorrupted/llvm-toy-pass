@@ -22,7 +22,7 @@ private:
 
 	Value* CONST_ONE = nullptr;
 	Value* CONST_TWO = nullptr;
-	Value* COSNT_TEN = nullptr;
+	Value* CONST_TEN = nullptr;
 
 	Constant* m_Function = nullptr;
 
@@ -35,7 +35,7 @@ private:
 
 		CONST_ONE = ConstantInt::get(Int32Ty, 1, true);
 		CONST_TWO = ConstantInt::get(Int32Ty, 2, true);
-		COSNT_TEN = ConstantInt::get(Int32Ty, 10, true);
+		CONST_TEN = ConstantInt::get(Int32Ty, 10, true);
 
 		m_Function = function.getParent()->getOrInsertFunction("abort", VoidTy, nullptr);
 	}
@@ -56,14 +56,21 @@ public:
 					errs() << "An add instruction found, inserting branch.\n";
 
 					Value* arg0 = instruction.getOperand(0);
-					IRBuilder<> IRB(&instruction);
-					Value* icmpSGT = IRB.CreateICmpSGT(arg0, CONST_ONE);
-					Value* icmpSLT = IRB.CreateICmpSLT(arg0, COSNT_TEN);
-					Value* branchCond = IRB.CreateAnd(icmpSLT, icmpSGT);
-					Instruction* ifThenBranch = 
-						SplitBlockAndInsertIfThen(branchCond, instruction.getNextNode(), false);
-					IRBuilder<> branchIRB(ifThenBranch);
-					branchIRB.CreateCall(m_Function, {});
+					IRBuilder<> IRB(instruction.getNextNode());
+
+					Value* icmpSGT = IRB.CreateICmpSGT(arg0, CONST_TEN);
+					Instruction* insertGTPoint = dyn_cast<Instruction>(icmpSGT);
+					Instruction* ifGTThenBranch = 
+						SplitBlockAndInsertIfThen(icmpSGT, insertGTPoint->getNextNode(), false);
+					IRBuilder<> gTBranchIRB(ifGTThenBranch);
+					gTBranchIRB.CreateCall(m_Function, {});
+
+					Value* icmpSLT = IRB.CreateICmpSLT(arg0, CONST_ONE);
+					Instruction* insertLTPoint = dyn_cast<Instruction>(icmpSLT);
+					Instruction* ifLTThenBranch =
+						SplitBlockAndInsertIfThen(icmpSLT, insertLTPoint->getNextNode(), false);
+					IRBuilder<> lTBranchIRB(ifLTThenBranch);
+					lTBranchIRB.CreateCall(m_Function, {});
 
 					modified = true;
 				}
