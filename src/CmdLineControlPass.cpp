@@ -46,7 +46,6 @@ private:
 		void inc() { m_occCut ++; }
 	};
 	
-	typedef std::pair<unsigned, OpInfo> OpInfoPair;
 	std::map<unsigned, OpInfo> m_opInfoMap;
 	std::list<char> m_checkOpList;
 
