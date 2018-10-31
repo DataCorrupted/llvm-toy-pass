@@ -16,27 +16,27 @@ using namespace llvm;
 
 namespace {
 
-class OperationInfo{
-private:
-	unsigned m_opcode;
-	char m_opChar;
-	std::string m_opStr;
-	unsigned m_occCut;
-
-public:
-	OperationInfo(){;}
-	OperationInfo(unsigned opcode, char opChar, std::string opStr): 
-		m_opcode(opcode), m_opChar(opChar), m_opStr(opStr), m_occCut(0){;}
-
-	const unsigned getOpcode() const { return m_opcode; }
-	const char getOpChar() const { return m_opChar; }
-	const std::string& getOpStr() const { return m_opStr; }
-	const unsigned getOccuranceCount() const { return m_occCut; }
-	void inc() { m_occCut ++; }
-};
-
 class CmdLineControlPass: public ModulePass{
 private:
+
+	class OperationInfo{
+	private:
+		unsigned m_opcode;
+		char m_opChar;
+		std::string m_opStr;
+		unsigned m_occCut;
+
+	public:
+		OperationInfo(){;}
+		OperationInfo(unsigned opcode, char opChar, std::string opStr): 
+			m_opcode(opcode), m_opChar(opChar), m_opStr(opStr), m_occCut(0){;}
+
+		const unsigned getOpcode() const { return m_opcode; }
+		const char getOpChar() const { return m_opChar; }
+		const std::string& getOpStr() const { return m_opStr; }
+		const unsigned getOccuranceCount() const { return m_occCut; }
+		void inc() { m_occCut ++; }
+	};
 	
 	typedef std::pair<unsigned, OperationInfo> OpInfoPair;
 	std::map<unsigned, OperationInfo> m_opInfoMap;
