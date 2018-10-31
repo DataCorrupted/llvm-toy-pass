@@ -16,41 +16,58 @@ using namespace llvm;
 
 namespace {
 
+class OperationInfo{
+private:
+	unsigned m_opcode;
+	char m_opChar;
+	std::string m_opStr;
+	unsigned m_occCut;
+
+public:
+	OperationInfo(){;}
+	OperationInfo(unsigned opcode, char opChar, std::string opStr): 
+		m_opcode(opcode), m_opChar(opChar), m_opStr(opStr), m_occCut(0){;}
+
+	const unsigned getOpcode() const { return m_opcode; }
+	const char getOpChar() const { return m_opChar; }
+	const std::string& getOpStr() const { return m_opStr; }
+	const unsigned getOccuranceCount() const { return m_occCut; }
+	void inc() { m_occCut ++; }
+};
+
 class CmdLineControlPass: public ModulePass{
 private:
-	std::map<unsigned, unsigned> m_opCntMap;
-	std::map<unsigned, char> m_opCharMap;
+	
+	typedef std::pair<unsigned, OperationInfo> OpInfoPair;
+	std::map<unsigned, OperationInfo> m_opInfoMap;
 	std::list<char> m_checkOpList;
+
 public:
 	static char ID;
 	CmdLineControlPass(): ModulePass(ID){
 		errs() << "-- CmdLineControlPass --\n";
 
-		m_opCharMap[Instruction::Mul] = '*';
-		m_opCharMap[Instruction::Shl] = '<';
-		m_opCharMap[Instruction::Add] = '+';
-		m_opCharMap[Instruction::Sub] = '-';
-		m_opCharMap[BinaryOperator::SDiv] = '/';
-		m_opCharMap[BinaryOperator::SRem] = '%';
-		m_opCharMap[BinaryOperator::UDiv] = '/';
-		m_opCharMap[BinaryOperator::URem] = '%';
-
-		m_opCntMap[Instruction::Mul] = 0;
-		m_opCntMap[Instruction::Shl] = 0;
-		m_opCntMap[Instruction::Add] = 0;
-		m_opCntMap[Instruction::Sub] = 0;
-		m_opCntMap[BinaryOperator::SDiv] = 0;
-		m_opCntMap[BinaryOperator::SRem] = 0;
-		m_opCntMap[BinaryOperator::UDiv] = 0;
-		m_opCntMap[BinaryOperator::URem] = 0;
+		m_opInfoMap.insert(OpInfoPair(Instruction::Mul, OperationInfo(Instruction::Mul, '*', " Mul")));
+		m_opInfoMap.insert(OpInfoPair(Instruction::Shl, OperationInfo(Instruction::Shl, '<', " Shl")));
+		m_opInfoMap.insert(OpInfoPair(Instruction::Add, OperationInfo(Instruction::Add, '+', " Add")));
+		m_opInfoMap.insert(OpInfoPair(Instruction::Sub, OperationInfo(Instruction::Sub, '-', " Sub")));
+		m_opInfoMap.insert(OpInfoPair(BinaryOperator::SDiv, OperationInfo(BinaryOperator::SDiv, '/', "SDiv")));
+		m_opInfoMap.insert(OpInfoPair(BinaryOperator::SRem, OperationInfo(BinaryOperator::SRem, '%', "SRem")));
+		m_opInfoMap.insert(OpInfoPair(BinaryOperator::UDiv, OperationInfo(BinaryOperator::UDiv, '/', "UDiv")));
+		m_opInfoMap.insert(OpInfoPair(BinaryOperator::URem, OperationInfo(BinaryOperator::URem, '%', "URem")));
 
 		const char* checkOpEnv = getenv("SAN_OP");
-		if (checkOpEnv) {
+		if (checkOpEnv && checkOpEnv[0] != 0) {
 			std::string checkOpStr = checkOpEnv;
 			for (char c: checkOpStr){
-				errs() << c ;
-				if (c == 'a' || c == 'A') {
-					m_checkOpList = {'+', '-', '*', '/', '<', '%'};		
+				if (c == '0') {
+					m_checkOpList =  {'+', '-'} ;
+					break;
+				} else if (c == '1'){
+					m_checkOpList = {'+', '-', '*', '/', '%'};
+					break;
+				} else if (c == 'a' || c == 'A' || c == '2') {
+					m_checkOpList = {'+', '-', '*', '/', '%', '<'};		
 					break;
 				} else if (c == '+' || c == '-' || c == '*' || 
 						   c == '/' || c == '<' || c == '%') {
@@ -58,7 +75,12 @@ public:
 				}
 			}
 		} else {
-			m_checkOpList = {'+', '-', '*', '/', '<', '%'};
+			m_checkOpList = {'+', '-', '*', '/', '%', '<'};
+		}
+
+		errs() << "Your are tracking the following operations: ";
+		for (char c: m_checkOpList){
+			errs() << c << " ";
 		}
 		errs() << "\n";
 	};
@@ -67,12 +89,15 @@ public:
 		for (const Function& function: module){
 			for (const BasicBlock& basicBlock: function){
 				for (const Instruction& instruction: basicBlock){
+					unsigned opcode = instruction.getOpcode();
 					if (
+					  m_opInfoMap.find(opcode) != m_opInfoMap.end() 
+					&&
 					  std::find(
 							m_checkOpList.begin(), m_checkOpList.end(),
-							m_opCharMap[instruction.getOpcode()]) 
+							m_opInfoMap[opcode].getOpChar()) 
 					  != m_checkOpList.end()) {
-						m_opCntMap[instruction.getOpcode()]++;
+						m_opInfoMap[opcode].inc();
 					}
 				}
 			}
@@ -80,14 +105,17 @@ public:
 		return false;
 	}
 	~CmdLineControlPass(){
-		errs() << " Mul: " << m_opCntMap[Instruction::Mul] << "\n";
-		errs() << " Shl: " << m_opCntMap[Instruction::Shl] << "\n";
-		errs() << " Add: " << m_opCntMap[Instruction::Add] << "\n";
-		errs() << " Sub: " << m_opCntMap[Instruction::Sub] << "\n";
-		errs() << "SDiv: " << m_opCntMap[BinaryOperator::SDiv] << "\n";
-		errs() << "SRem: " << m_opCntMap[BinaryOperator::SRem] << "\n";
-		errs() << "UDiv: " << m_opCntMap[BinaryOperator::UDiv] << "\n";
-		errs() << "URem: " << m_opCntMap[BinaryOperator::URem] << "\n";
+		for (std::pair<const unsigned, OperationInfo>& pair: m_opInfoMap){
+			OperationInfo& opInfo = pair.second;
+			if (std::find(
+					m_checkOpList.begin(), m_checkOpList.end(),
+					opInfo.getOpChar())
+			  != m_checkOpList.end()){
+				errs() << opInfo.getOpStr() << ": " << opInfo.getOccuranceCount() << "\n";
+			} else {
+				errs() << opInfo.getOpStr() << ": " << "Uncounted.\n";
+			}
+		}
 	}
 }; // enf of CmdLineControlPass
 }  // end of anonymous namespace 
