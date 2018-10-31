@@ -19,7 +19,7 @@ namespace {
 class CmdLineControlPass: public ModulePass{
 private:
 
-	class OperationInfo{
+	class OpInfo{
 	private:
 		unsigned m_opcode;
 		char m_opChar;
@@ -27,19 +27,27 @@ private:
 		unsigned m_occCut;
 
 	public:
-		OperationInfo(){;}
-		OperationInfo(unsigned opcode, char opChar, std::string opStr): 
+		OpInfo(){;}
+		OpInfo(unsigned opcode, char opChar, std::string opStr): 
 			m_opcode(opcode), m_opChar(opChar), m_opStr(opStr), m_occCut(0){;}
 
-		const unsigned getOpcode() const { return m_opcode; }
-		const char getOpChar() const { return m_opChar; }
+		static std::pair<unsigned, OpInfo> getUnsignedInstancePair(
+			unsigned opcode, char opChar, std::string opStr){
+			return std::pair<unsigned, OpInfo>(
+				opcode, OpInfo(opcode, opChar, opStr));
+		};
+		// Lessons taken:
+		//   Modifying a value with const is meaningless,
+		//   only objects can be modified with const.
+		unsigned getOpcode() const { return m_opcode; }
+		char getOpChar() const { return m_opChar; }
 		const std::string& getOpStr() const { return m_opStr; }
-		const unsigned getOccuranceCount() const { return m_occCut; }
+		unsigned getOccuranceCount() const { return m_occCut; }
 		void inc() { m_occCut ++; }
 	};
 	
-	typedef std::pair<unsigned, OperationInfo> OpInfoPair;
-	std::map<unsigned, OperationInfo> m_opInfoMap;
+	typedef std::pair<unsigned, OpInfo> OpInfoPair;
+	std::map<unsigned, OpInfo> m_opInfoMap;
 	std::list<char> m_checkOpList;
 
 public:
@@ -47,14 +55,14 @@ public:
 	CmdLineControlPass(): ModulePass(ID){
 		errs() << "-- CmdLineControlPass --\n";
 
-		m_opInfoMap.insert(OpInfoPair(Instruction::Mul, OperationInfo(Instruction::Mul, '*', " Mul")));
-		m_opInfoMap.insert(OpInfoPair(Instruction::Shl, OperationInfo(Instruction::Shl, '<', " Shl")));
-		m_opInfoMap.insert(OpInfoPair(Instruction::Add, OperationInfo(Instruction::Add, '+', " Add")));
-		m_opInfoMap.insert(OpInfoPair(Instruction::Sub, OperationInfo(Instruction::Sub, '-', " Sub")));
-		m_opInfoMap.insert(OpInfoPair(BinaryOperator::SDiv, OperationInfo(BinaryOperator::SDiv, '/', "SDiv")));
-		m_opInfoMap.insert(OpInfoPair(BinaryOperator::SRem, OperationInfo(BinaryOperator::SRem, '%', "SRem")));
-		m_opInfoMap.insert(OpInfoPair(BinaryOperator::UDiv, OperationInfo(BinaryOperator::UDiv, '/', "UDiv")));
-		m_opInfoMap.insert(OpInfoPair(BinaryOperator::URem, OperationInfo(BinaryOperator::URem, '%', "URem")));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(    Instruction::Mul, '*', " Mul"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(    Instruction::Shl, '<', " Shl"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(    Instruction::Add, '+', " Add"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(    Instruction::Sub, '-', " Sub"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(BinaryOperator::SDiv, '/', "SDiv"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(BinaryOperator::SRem, '%', "SRem"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(BinaryOperator::UDiv, '/', "UDiv"));
+		m_opInfoMap.insert(OpInfo::getUnsignedInstancePair(BinaryOperator::URem, '%', "URem"));
 
 		const char* checkOpEnv = getenv("SAN_OP");
 		if (checkOpEnv && checkOpEnv[0] != 0) {
@@ -105,8 +113,8 @@ public:
 		return false;
 	}
 	~CmdLineControlPass(){
-		for (std::pair<const unsigned, OperationInfo>& pair: m_opInfoMap){
-			OperationInfo& opInfo = pair.second;
+		for (std::pair<const unsigned, OpInfo>& pair: m_opInfoMap){
+			OpInfo& opInfo = pair.second;
 			if (std::find(
 					m_checkOpList.begin(), m_checkOpList.end(),
 					opInfo.getOpChar())
